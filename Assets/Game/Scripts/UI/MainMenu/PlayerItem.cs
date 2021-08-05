@@ -7,28 +7,15 @@ using UnityEngine.UI;
 
 namespace Game.UI.MainMenu
 {
-    public class PlayerItem : MonoBehaviourPunCallbacks
+    public class PlayerItem : MonoBehaviour
     {
         [SerializeField] private TMP_Text _playerNameText;
-        private Player _player;
+        public Player Player;
 
         public void Setup(Player player)
         {
-            _player = player;
+            Player = player;
             _playerNameText.text = player.NickName;
-        }
-
-        public override void OnPlayerLeftRoom(Player otherPlayer)
-        {
-            if (!Equals(_player, otherPlayer))
-                return;
-            
-            Destroy(gameObject);
-        }
-
-        public override void OnLeftRoom()
-        {
-            Destroy(gameObject);
         }
     }
 }

@@ -13,13 +13,10 @@ namespace Game.UI
         [SerializeField] private Button _hostGameButton;
         [SerializeField] private Button _joinGameButton;
         [SerializeField] private Button _quitGameButton;
-        
-        [Header("SharedVariable")] 
-        [SerializeField] private StringVariable playerNickName;
 
-        public UnityAction HostGameButtonAction;
-        public UnityAction JoinGameButtonAction;
-        public UnityAction QuitGameButtonAction;
+        public Action HostGameButtonAction;
+        public Action JoinGameButtonAction;
+        public Action QuitGameButtonAction;
 
         private void Awake()
         {
@@ -49,11 +46,12 @@ namespace Game.UI
         private void QuitGameButton()
         {
             QuitGameButtonAction.Invoke();
+            Application.Quit(); //TODO extract to another controller
         }
 
         private void ChangeNickName(string name)
         {
-            playerNickName.RuntimeValue = name;
+            RuntimeData.playerNickName = name;
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Events;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
@@ -12,34 +13,18 @@ namespace Game
 {
     public class Launcher : MonoBehaviourPunCallbacks
     {
-        [Header("SharedVariable")] 
-        [SerializeField] private StringVariable playerNickName;
-        
-        [Header("Listening on channels")] 
-        [SerializeField] private StringEventChannelSO _createRoomEvent;
-        [SerializeField] private VoidEventChannelSO _leaveRoomEvent;
-        [SerializeField] private RoomInfoEventChannelSO _joinRoomEvent;
-
-        [Header("Broadcasting on channels")] 
-        [SerializeField] private VoidEventChannelSO _joinedLobbyEvent;
-        [SerializeField] private StringEventChannelSO _joinedRoomEvent;
-        [SerializeField] private StringEventChannelSO _createRoomFailedEvent;
-        [SerializeField] private RoomInfoListEventChannelSO _roomListUpdateEvent;
-        [SerializeField] private PlayerInfoEventChannelSO _playerEnteredRoomEvent;
-
-
         private void Awake()
         {
-            _createRoomEvent.OnEventRaised += CreateRoom;
-            _leaveRoomEvent.OnEventRaised += LeaveRoom;
-            _joinRoomEvent.OnEventRaised += JoinRoom;
+            MessageBus.CreateRoomEvent += CreateRoom;
+            MessageBus.LeaveRoomEvent += LeaveRoom;
+            MessageBus.JoinRoomEvent += JoinRoom;
         }
 
         private void OnDestroy()
         {
-            _createRoomEvent.OnEventRaised -= CreateRoom;
-            _leaveRoomEvent.OnEventRaised -= LeaveRoom;
-            _joinRoomEvent.OnEventRaised -= JoinRoom;
+            MessageBus.CreateRoomEvent -= CreateRoom;
+            MessageBus.LeaveRoomEvent -= LeaveRoom;
+            MessageBus.JoinRoomEvent -= JoinRoom;
         }
 
         private void Start()
@@ -56,7 +41,7 @@ namespace Game
 
         public override void OnJoinedLobby()
         {
-            _joinedLobbyEvent.RaiseEvent();
+            MessageBus.JoinedLobbyEvent?.Invoke();
             Debug.Log("Joined Lobby");
         }
 
@@ -72,21 +57,23 @@ namespace Game
 
         public override void OnJoinedRoom()
         {
-            PhotonNetwork.NickName = playerNickName.RuntimeValue.IsNullOrEmpty() ? "Player " + Random.Range(0, 10000).ToString("0000") : playerNickName.RuntimeValue;
-            
-            _joinedRoomEvent.RaiseEvent(PhotonNetwork.CurrentRoom.Name);
-            
+            PhotonNetwork.NickName = RuntimeData.playerNickName.IsNullOrEmpty()
+                ? "Player " + Random.Range(0, 10000).ToString("0000")
+                : RuntimeData.playerNickName;
+
+            MessageBus.JoinedRoomEvent?.Invoke(PhotonNetwork.CurrentRoom.Name);
+
             var players = PhotonNetwork.PlayerList;
 
             for (int i = 0; i < players.Length; i++)
             {
-                _playerEnteredRoomEvent.RaiseEvent(players[i]);
+                MessageBus.PlayerEnteredRoomEvent?.Invoke(players[i]);
             }
         }
 
         public override void OnCreateRoomFailed(short returnCode, string message)
         {
-            _createRoomFailedEvent.RaiseEvent($"Room Creation Failed: {message}");
+            MessageBus.CreateRoomFailedEvent?.Invoke($"Room Creation Failed: {message}");
         }
 
         public void LeaveRoom()
@@ -94,15 +81,15 @@ namespace Game
             PhotonNetwork.LeaveRoom();
         }
 
-/*
-        public override void OnLeftRoom()
+        public override void OnPlayerLeftRoom(Player otherPlayer)
         {
-            _joinedLobbyEvent.RaiseEvent();
+            Debug.Log("left blya");
+            MessageBus.PlayerLeftRoom?.Invoke(otherPlayer);
         }
-*/
+
         public override void OnRoomListUpdate(List<RoomInfo> roomList)
         {
-            _roomListUpdateEvent.RaiseEvent(roomList);
+            MessageBus.RoomListUpdateEvent?.Invoke(roomList); //_roomListUpdateEvent?.Invoke(roomList);
         }
 
         public void JoinRoom(RoomInfo info)
@@ -112,7 +99,7 @@ namespace Game
 
         public override void OnPlayerEnteredRoom(Player newPlayer)
         {
-            _playerEnteredRoomEvent.RaiseEvent(newPlayer);
+            MessageBus.PlayerEnteredRoomEvent?.Invoke(newPlayer);
         }
     }
 }

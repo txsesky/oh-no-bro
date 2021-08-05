@@ -12,7 +12,7 @@ namespace Game.UI
         [SerializeField] private TMP_Text _errorMessageText;
         [SerializeField] private Button _backButton;
         
-        public UnityAction BackButtonAction;
+        public Action BackButtonAction;
 
         private void Awake()
         {

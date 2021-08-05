@@ -16,8 +16,8 @@ namespace Game.UI
 
         [SerializeField] private GameObject _roomListItemPrefab;
         
-        public UnityAction<RoomInfo> JoinRoomAction;
-        public UnityAction BackButtonAction;
+        public Action<RoomInfo> JoinRoomAction;
+        public Action BackButtonAction;
 
         private void Awake()
         {
@@ -31,6 +31,10 @@ namespace Game.UI
 
         public void InitRoomList(List<RoomInfo> roomList)
         {
+            foreach (Transform child in _roomListContainer)
+            {
+                Destroy(child.gameObject);
+            }
             foreach (var roomInfo in roomList)
             {
                 var go = Instantiate(_roomListItemPrefab, _roomListContainer);

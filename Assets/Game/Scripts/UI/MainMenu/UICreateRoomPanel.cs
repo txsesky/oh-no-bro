@@ -1,3 +1,4 @@
+using System;
 using Game.UI.Common;
 using TMPro;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace Game.UI
         [SerializeField] private TMP_InputField _roomNameInput;
         [SerializeField] private Button _createRoomButton;
         
-        public UnityAction<string> CreateRoomAction;
+        public Action<string> CreateRoomAction;
 
         private void Awake()
         {

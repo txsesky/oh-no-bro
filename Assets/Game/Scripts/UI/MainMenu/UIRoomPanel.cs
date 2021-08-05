@@ -17,7 +17,7 @@ namespace Game.UI
 
         [SerializeField] private GameObject _playerItem;
         
-        public UnityAction LeaveRoomButtonAction;
+        public Action LeaveRoomButtonAction;
 
         private void Awake()
         {
@@ -42,6 +42,18 @@ namespace Game.UI
         public void InitPlayer(Player player)
         {
             Instantiate(_playerItem, _playerListContainer).GetComponent<PlayerItem>().Setup(player);
+        }
+
+        public void RemovePlayer(Player player)
+        {
+            foreach (Transform child in _playerListContainer)
+            {
+                var playerItem = child.GetComponent<PlayerItem>();
+                if (Equals(player, playerItem.Player))
+                {
+                    Destroy(child.gameObject);
+                }
+            }
         }
     }
 }

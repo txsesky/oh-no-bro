@@ -1,3 +1,4 @@
+using System;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace Game.UI.MainMenu
 
         private RoomInfo _info;
 
-        public UnityAction<RoomInfo, RoomItem> RoomButtonAction;
+        public Action<RoomInfo, RoomItem> RoomButtonAction;
 
         public void Setup(RoomInfo info)
         {

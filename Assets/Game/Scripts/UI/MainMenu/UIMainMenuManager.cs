@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Events;
 using Photon.Realtime;
 using UnityEngine;
 
@@ -13,28 +14,17 @@ namespace Game.UI
         [SerializeField] private UIRoomPanel _uiRoomPanel;
         [SerializeField] private UIErrorPanel _uiErrorPanel;
         [SerializeField] private UILoadingPanel _uiLoadingPanel;
-        
-        [Header("Listen")]
-        [SerializeField] private VoidEventChannelSO _joinedLobbyEvent;
-        [SerializeField] private StringEventChannelSO _joinedRoomEvent;
-        [SerializeField] private StringEventChannelSO _createRoomFailedEvent;
-        [SerializeField] private RoomInfoListEventChannelSO _roomListUpdateEvent;
-        [SerializeField] private PlayerInfoEventChannelSO _playerEnteredRoomEvent;
-
-        [Header("Broadcast")]
-        [SerializeField] private StringEventChannelSO _createRoomEvent;
-        [SerializeField] private VoidEventChannelSO _leaveRoomEvent;
-        [SerializeField] private RoomInfoEventChannelSO _joinRoomEvent;
 
         private void Awake()
         {
             ResetPanels();
             
-            _joinedLobbyEvent.OnEventRaised += OpenMainMenuPanel;
-            _joinedRoomEvent.OnEventRaised += OpenRoomPanel;
-            _createRoomFailedEvent.OnEventRaised += OpenErrorPanel;
-            _roomListUpdateEvent.OnEventRaised += InitRoomList;
-            _playerEnteredRoomEvent.OnEventRaised += InitPlayer;
+            MessageBus.JoinedLobbyEvent += OpenMainMenuPanel;
+            MessageBus.JoinedRoomEvent += OpenRoomPanel;
+            MessageBus.CreateRoomFailedEvent += OpenErrorPanel;
+            MessageBus.RoomListUpdateEvent += InitRoomList;//_roomListUpdateEvent.OnEventRaised += InitRoomList;
+            MessageBus.PlayerEnteredRoomEvent += InitPlayer;
+            MessageBus.PlayerLeftRoom += RemovePlayer;
         }
 
         private void ResetPanels()
@@ -51,18 +41,24 @@ namespace Game.UI
         {
             _uiFindRoomPanel.InitRoomList(roomList);
         }
+
         private void InitPlayer(Player player)
         {
             _uiRoomPanel.InitPlayer(player);
         }
 
+        private void RemovePlayer(Player player)
+        {
+            _uiRoomPanel.RemovePlayer(player);
+        }
+
         private void OnDestroy()
         {
-            _joinedLobbyEvent.OnEventRaised -= OpenMainMenuPanel;
-            _joinedRoomEvent.OnEventRaised -= OpenRoomPanel;
-            _createRoomFailedEvent.OnEventRaised -= OpenErrorPanel;
-            _roomListUpdateEvent.OnEventRaised -= InitRoomList;
-            _playerEnteredRoomEvent.OnEventRaised -= InitPlayer;
+            MessageBus.JoinedLobbyEvent -= OpenMainMenuPanel;
+            MessageBus.JoinedRoomEvent -= OpenRoomPanel;
+            MessageBus.CreateRoomFailedEvent -= OpenErrorPanel;
+            MessageBus.RoomListUpdateEvent -= InitRoomList;
+            MessageBus.PlayerEnteredRoomEvent -= InitPlayer;
         }
 
         private void OpenMainMenuPanel()
@@ -106,7 +102,7 @@ namespace Game.UI
             _uiFindRoomPanel.JoinRoomAction -= JoinRoom;
             _uiFindRoomPanel.Hide();
             
-            _joinRoomEvent.RaiseEvent(roomInfo);
+            MessageBus.JoinRoomEvent(roomInfo);
         }
 
         private void OpenRoomPanel(string roomName)
@@ -117,7 +113,7 @@ namespace Game.UI
             
             _uiRoomPanel.LeaveRoomButtonAction += delegate
             {
-                _leaveRoomEvent.RaiseEvent();
+                MessageBus.LeaveRoomEvent?.Invoke();
                 _uiRoomPanel.Hide();
                 _uiLoadingPanel.Show();
             };
@@ -146,7 +142,7 @@ namespace Game.UI
             _uiCreateRoomPanel.Hide();
             _uiLoadingPanel.Show();
             
-            _createRoomEvent.RaiseEvent(roomName);
+            MessageBus.CreateRoomEvent.Invoke(roomName);
         }
     }
 }
