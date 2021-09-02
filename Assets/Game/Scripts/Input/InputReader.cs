@@ -30,8 +30,10 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions
             gameInput.Gameplay.SetCallbacks(this);
             //gameInput.Dialogues.SetCallbacks(this);
         }
+        
+        EnableGameplayInput();
     }
-
+    
     private void OnDisable()
     {
         DisableAllInput();
@@ -54,7 +56,10 @@ public class InputReader : ScriptableObject, GameInput.IGameplayActions
     public void OnTrackPointerPosition(InputAction.CallbackContext context)
     {
         trackPointerPositionEvent.Invoke(context.ReadValue<Vector2>());
+        pointerPosition = context.ReadValue<Vector2>();
     }
+
+    public Vector2 pointerPosition;
 
     public void EnableDialogueInput()
     {

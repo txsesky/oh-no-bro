@@ -14,9 +14,8 @@ namespace Game
         [SerializeField] private string _prefabToInstantiate = "Game/Prefabs/Characters/BasicKyle Variant";
         [SerializeField] private float _spawnPointsDistance = 15;
         [SerializeField] private float _spawnPointsHeight = 0;
-        
 
-        private List<Vector3> _spawnPointsList = new List<Vector3>();
+        private readonly List<Vector3> _spawnPointsList = new List<Vector3>();
 
         private void Start()
         {
@@ -42,13 +41,13 @@ namespace Game
             for (int i = 0; i < playersCount; i++)
             {
                 var angle = i * baseAngle;
-                var spawnPoint = new Vector3(_spawnPointsDistance * Mathf.Cos(angle), _spawnPointsHeight,
-                    _spawnPointsDistance * Mathf.Sin(angle));
+                var spawnPoint = new Vector3(_spawnPointsDistance * Mathf.Cos(Mathf.Deg2Rad * angle), _spawnPointsHeight,
+                    _spawnPointsDistance * Mathf.Sin(Mathf.Deg2Rad * angle));
                 _spawnPointsList.Add(spawnPoint);
             }
         }
 
-        public void GetSpawnPoint(out Vector3 spawnPos, out Quaternion spawnRot)
+        private void GetSpawnPoint(out Vector3 spawnPos, out Quaternion spawnRot)
         {
             var id = PhotonNetwork.LocalPlayer.ActorNumber;
             spawnPos = _spawnPointsList[(id == -1) ? 0 : id % _spawnPointsList.Count];
