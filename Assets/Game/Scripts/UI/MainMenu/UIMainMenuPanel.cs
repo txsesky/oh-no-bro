@@ -1,9 +1,12 @@
 using System;
 using Game.UI.Common;
+using Photon.Pun;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using WebSocketSharp;
+using Random = UnityEngine.Random;
 
 namespace Game.UI
 {
@@ -52,6 +55,9 @@ namespace Game.UI
         private void ChangeNickName(string name)
         {
             RuntimeData.playerNickName = name;
+            PhotonNetwork.NickName = RuntimeData.playerNickName.IsNullOrEmpty()
+                ? "Player " + Random.Range(0, 10000).ToString("0000")
+                : RuntimeData.playerNickName;//TODO extract to another controller
         }
     }
 }

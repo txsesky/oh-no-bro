@@ -14,19 +14,23 @@ namespace Game.UI
         [SerializeField] private TMP_Text _roomNameText;
         [SerializeField] private Transform _playerListContainer;
         [SerializeField] private Button _leaveRoomButton;
+        [SerializeField] private Button _startGameButton;
 
         [SerializeField] private GameObject _playerItem;
         
         public Action LeaveRoomButtonAction;
+        public Action StartGameButtonAction;
 
         private void Awake()
         {
             _leaveRoomButton.onClick.AddListener(LeaveRoomButton);
+            _startGameButton.onClick.AddListener(StartGameButton);
         }
 
         private void OnDestroy()
         {
             _leaveRoomButton.onClick.RemoveAllListeners();
+            _startGameButton.onClick.RemoveAllListeners();
         }
         
         public void SetRoomName(string roomName)
@@ -37,6 +41,11 @@ namespace Game.UI
         private void LeaveRoomButton()
         {
             LeaveRoomButtonAction.Invoke();
+        }
+        
+        private void StartGameButton()
+        {
+            StartGameButtonAction.Invoke();
         }
 
         public void InitPlayer(Player player)
@@ -54,6 +63,19 @@ namespace Game.UI
                     Destroy(child.gameObject);
                 }
             }
+        }
+
+        public void CleanPlayers()
+        {
+            foreach (Transform child in _playerListContainer)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        public void StartGameButtonSetActive(bool value)
+        {
+            _startGameButton.gameObject.SetActive(value);
         }
     }
 }

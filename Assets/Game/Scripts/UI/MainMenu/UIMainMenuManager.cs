@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Events;
+using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 
@@ -24,7 +25,19 @@ namespace Game.UI
             MessageBus.CreateRoomFailedEvent += OpenErrorPanel;
             MessageBus.RoomListUpdateEvent += InitRoomList;//_roomListUpdateEvent.OnEventRaised += InitRoomList;
             MessageBus.PlayerEnteredRoomEvent += InitPlayer;
-            MessageBus.PlayerLeftRoom += RemovePlayer;
+            MessageBus.OtherLeftRoomEvent += RemovePlayer;
+            MessageBus.MeLeftRoomEvent += CleanPlayers;
+        }
+
+        private void OnDestroy()
+        {
+            MessageBus.JoinedLobbyEvent -= OpenMainMenuPanel;
+            MessageBus.JoinedRoomEvent -= OpenRoomPanel;
+            MessageBus.CreateRoomFailedEvent -= OpenErrorPanel;
+            MessageBus.RoomListUpdateEvent -= InitRoomList;
+            MessageBus.PlayerEnteredRoomEvent -= InitPlayer;
+            MessageBus.OtherLeftRoomEvent -= RemovePlayer;
+            MessageBus.MeLeftRoomEvent -= CleanPlayers;
         }
 
         private void ResetPanels()
@@ -52,45 +65,45 @@ namespace Game.UI
             _uiRoomPanel.RemovePlayer(player);
         }
 
-        private void OnDestroy()
+        private void CleanPlayers()
         {
-            MessageBus.JoinedLobbyEvent -= OpenMainMenuPanel;
-            MessageBus.JoinedRoomEvent -= OpenRoomPanel;
-            MessageBus.CreateRoomFailedEvent -= OpenErrorPanel;
-            MessageBus.RoomListUpdateEvent -= InitRoomList;
-            MessageBus.PlayerEnteredRoomEvent -= InitPlayer;
+            _uiRoomPanel.CleanPlayers();
         }
 
         private void OpenMainMenuPanel()
         {
+            _uiFindRoomPanel.BackButtonAction = delegate { };
+            _uiRoomPanel.LeaveRoomButtonAction = delegate { };
+
             _uiLoadingPanel.Hide();
             _uiMainMenuPanel.Show();
             
-            _uiMainMenuPanel.HostGameButtonAction += OpenCreateRoomPanel;
-            _uiMainMenuPanel.JoinGameButtonAction += OpenFindRoomPanel;
+            _uiMainMenuPanel.HostGameButtonAction = OpenCreateRoomPanel;
+            _uiMainMenuPanel.JoinGameButtonAction = OpenFindRoomPanel;
+            
         }
 
         private void OpenCreateRoomPanel()
         {
-            _uiMainMenuPanel.HostGameButtonAction -= OpenCreateRoomPanel;
+            _uiMainMenuPanel.HostGameButtonAction = delegate { };
             
             _uiMainMenuPanel.Hide();
             _uiCreateRoomPanel.Show();
             
-            _uiCreateRoomPanel.CreateRoomAction += CreateRoomButtonClicked;
+            _uiCreateRoomPanel.CreateRoomAction = CreateRoomButtonClicked;
         }
 
         private void OpenFindRoomPanel()
         {
-            _uiMainMenuPanel.JoinGameButtonAction -= OpenFindRoomPanel;
+            _uiMainMenuPanel.JoinGameButtonAction = delegate { };
             
             _uiMainMenuPanel.Hide();
             _uiFindRoomPanel.Show();
 
-            _uiFindRoomPanel.JoinRoomAction += JoinRoom;
-            _uiFindRoomPanel.BackButtonAction += delegate
+            _uiFindRoomPanel.JoinRoomAction = JoinRoom;
+            _uiFindRoomPanel.BackButtonAction = delegate
             {
-                _uiFindRoomPanel.JoinRoomAction -= JoinRoom;
+                _uiFindRoomPanel.JoinRoomAction = delegate {  };
                 _uiFindRoomPanel.Hide();
                 
                 OpenMainMenuPanel();
@@ -99,7 +112,7 @@ namespace Game.UI
 
         private void JoinRoom(RoomInfo roomInfo)
         {
-            _uiFindRoomPanel.JoinRoomAction -= JoinRoom;
+            _uiFindRoomPanel.JoinRoomAction = delegate {  };
             _uiFindRoomPanel.Hide();
             
             MessageBus.JoinRoomEvent(roomInfo);
@@ -108,15 +121,29 @@ namespace Game.UI
         private void OpenRoomPanel(string roomName)
         {
             _uiLoadingPanel.Hide();
+            
             _uiRoomPanel.Show();
             _uiRoomPanel.SetRoomName(roomName);
             
-            _uiRoomPanel.LeaveRoomButtonAction += delegate
+            _uiRoomPanel.LeaveRoomButtonAction = delegate
             {
                 MessageBus.LeaveRoomEvent?.Invoke();
                 _uiRoomPanel.Hide();
                 _uiLoadingPanel.Show();
             };
+            
+            if (!PhotonNetwork.IsMasterClient)
+            {
+                _uiRoomPanel.StartGameButtonSetActive(false);
+            }
+            else
+            {
+                _uiRoomPanel.StartGameButtonSetActive(true);
+                _uiRoomPanel.StartGameButtonAction = delegate
+                {
+                    PhotonNetwork.LoadLevel("Game");
+                };
+            }
         }
 
         private void OpenErrorPanel(string message)
@@ -128,7 +155,7 @@ namespace Game.UI
             _uiErrorPanel.Show();
             _uiErrorPanel.SetErrorMessage(message);
             
-            _uiErrorPanel.BackButtonAction += delegate
+            _uiErrorPanel.BackButtonAction = delegate
             {
                 _uiErrorPanel.Hide();
                 OpenMainMenuPanel();
@@ -137,7 +164,7 @@ namespace Game.UI
 
         private void CreateRoomButtonClicked(string roomName)
         {
-            _uiCreateRoomPanel.CreateRoomAction -= CreateRoomButtonClicked;
+            _uiCreateRoomPanel.CreateRoomAction = delegate { };
             
             _uiCreateRoomPanel.Hide();
             _uiLoadingPanel.Show();

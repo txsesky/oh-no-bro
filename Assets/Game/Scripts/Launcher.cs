@@ -13,8 +13,15 @@ namespace Game
 {
     public class Launcher : MonoBehaviourPunCallbacks
     {
+        private string _gameVersion = "1";
+        [SerializeField] private byte _maxPlayersPerRoom = 8;
+        
         private void Awake()
         {
+            _gameVersion = Application.version;
+            
+            PhotonNetwork.AutomaticallySyncScene = true;
+
             MessageBus.CreateRoomEvent += CreateRoom;
             MessageBus.LeaveRoomEvent += LeaveRoom;
             MessageBus.JoinRoomEvent += JoinRoom;
@@ -29,20 +36,38 @@ namespace Game
 
         private void Start()
         {
+            Connect();
+        }
+
+        private void Connect()
+        {
+            if (PhotonNetwork.IsConnected) return;
+            
             Debug.Log("Connecting to Master");
             PhotonNetwork.ConnectUsingSettings();
+            PhotonNetwork.GameVersion = _gameVersion;
         }
 
         public override void OnConnectedToMaster()
         {
-            Debug.Log("Connected to Master");
+            Debug.Log($"OnConnectedToMaster() was called by PUN ping: {PhotonNetwork.GetPing()}ms");
             PhotonNetwork.JoinLobby();
+        }
+
+        public override void OnDisconnected(DisconnectCause cause)
+        {
+            Debug.LogWarningFormat("OnDisconnected() was called by PUN with reason {0}", cause);
         }
 
         public override void OnJoinedLobby()
         {
+            Debug.Log("OnJoinedLobby() was called by PUN");
             MessageBus.JoinedLobbyEvent?.Invoke();
-            Debug.Log("Joined Lobby");
+        }
+
+        public override void OnLeftLobby()
+        {
+            Debug.Log("OnLeftLobby() was called by PUN");
         }
 
         public void CreateRoom(string roomName)
@@ -52,15 +77,11 @@ namespace Game
                 return;
             }
 
-            PhotonNetwork.CreateRoom(roomName);
+            PhotonNetwork.CreateRoom(roomName, new RoomOptions{MaxPlayers = _maxPlayersPerRoom});
         }
 
         public override void OnJoinedRoom()
         {
-            PhotonNetwork.NickName = RuntimeData.playerNickName.IsNullOrEmpty()
-                ? "Player " + Random.Range(0, 10000).ToString("0000")
-                : RuntimeData.playerNickName;
-
             MessageBus.JoinedRoomEvent?.Invoke(PhotonNetwork.CurrentRoom.Name);
 
             var players = PhotonNetwork.PlayerList;
@@ -81,10 +102,15 @@ namespace Game
             PhotonNetwork.LeaveRoom();
         }
 
+        public override void OnLeftRoom()
+        {
+            MessageBus.MeLeftRoomEvent?.Invoke();
+        }
+
         public override void OnPlayerLeftRoom(Player otherPlayer)
         {
             Debug.Log("left blya");
-            MessageBus.PlayerLeftRoom?.Invoke(otherPlayer);
+            MessageBus.OtherLeftRoomEvent?.Invoke(otherPlayer);
         }
 
         public override void OnRoomListUpdate(List<RoomInfo> roomList)
