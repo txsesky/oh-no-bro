@@ -54,10 +54,10 @@ namespace Game.UI
 
         private void ChangeNickName(string name)
         {
-            RuntimeData.playerNickName = name;
-            PhotonNetwork.NickName = RuntimeData.playerNickName.IsNullOrEmpty()
+            RuntimeData.PlayerNickName = name;
+            PhotonNetwork.NickName = RuntimeData.PlayerNickName.IsNullOrEmpty()
                 ? "Player " + Random.Range(0, 10000).ToString("0000")
-                : RuntimeData.playerNickName;//TODO extract to another controller
+                : RuntimeData.PlayerNickName;//TODO extract to another controller
         }
     }
 }

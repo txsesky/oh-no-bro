@@ -1,10 +1,12 @@
+using Leopotam.EcsLite;
 using UnityEngine;
 
 namespace Game
 {
     public static class RuntimeData
     {
-        public static string playerNickName;
-        public static Transform cameraTransformAnchor;
+        public static string PlayerNickName;
+        public static Transform CameraTransformAnchor;
+        public static EcsWorld EcsWorld;
     }
 }
