@@ -9,21 +9,21 @@ namespace Game.Systems
     {
         [EcsShared] private readonly SharedData _sharedData = default;
 
-        [EcsFilter(typeof(PositionData), typeof(MovementData), typeof(PlayerData), typeof(InputData))]
-        private readonly EcsFilter _playerFilter = default;
+        [EcsFilter(typeof(LocalToWorldData), typeof(MovementData), typeof(PlayerData), typeof(InputData))]
+        private readonly EcsFilter _playerGroup = default;
 
         [EcsPool] private readonly EcsPool<InputData> _inputPool = default;
 
-        [EcsPool] private readonly EcsPool<PositionData> _positionPool = default;
+        [EcsPool] private readonly EcsPool<LocalToWorldData> _positionPool = default;
 
         [EcsPool] private readonly EcsPool<MovementData> _movementPool = default;
 
         public void Run(EcsSystems systems)
         {
-            foreach (var playerEntity in _playerFilter)
+            foreach (var playerEntity in _playerGroup)
             {
                 ref var input = ref _inputPool.Get(playerEntity);
-                ref var position = ref _positionPool.Get(playerEntity);
+                ref var localToWorld = ref _positionPool.Get(playerEntity);
                 ref var movement = ref _movementPool.Get(playerEntity);
 
                 if (!input.IsPerformedToMove)
@@ -38,7 +38,7 @@ namespace Game.Systems
                 if (plane.Raycast(ray, out var point))
                 {
                     var destination = ray.GetPoint(point);
-                    var posV3 = position.Value;
+                    var posV3 = localToWorld.Position;
                     if ((destination - posV3).magnitude > 0.1f)
                     {
                         var dir = (destination - posV3).normalized;

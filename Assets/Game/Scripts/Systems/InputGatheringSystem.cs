@@ -9,7 +9,7 @@ namespace Game.Systems
     public class InputGatheringSystem : IEcsPreInitSystem, IEcsRunSystem, IEcsDestroySystem, GameInput.IGameplayActions
     {
         [EcsFilter(typeof(InputData))]
-        private readonly EcsFilter _inputFilter = default;
+        private readonly EcsFilter _inputGroup = default;
         
         [EcsPool] 
         private readonly EcsPool<InputData> _inputPool = default;
@@ -28,7 +28,7 @@ namespace Game.Systems
 
         public void Run(EcsSystems systems)
         {
-            foreach (var inputEntity in _inputFilter)
+            foreach (var inputEntity in _inputGroup)
             {
                 ref var input = ref _inputPool.Get(inputEntity);
                 input.IsPerformedToMove = _isPerformedToMove;

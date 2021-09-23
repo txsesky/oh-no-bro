@@ -24,8 +24,7 @@ namespace Game
             {
                 Camera = Camera.main,
                 DeltaTime = Time.deltaTime,
-                FixedDeltaTime = Time.fixedDeltaTime,
-                TriggerEventSystems = new List<ITriggerEventSystem>()
+                FixedDeltaTime = Time.fixedDeltaTime
             };
 
             _systems = new EcsSystems(_world, _sharedData);
@@ -34,17 +33,17 @@ namespace Game
                 .Add(new InputGatheringSystem())
                 .Add(new TrackDirectionSystem())
                 .Add(new MovementSystem())
-                .Add(new PositionLagCompensationSystem())
-                .Add(new PositionUpdateSystem())
-                .Add(new TriggerSystem())
+                .Add(new LagCompensationSystem())
+                .Add(new TransformUpdateSystem())
                 .Add(new ShopSystem())
+                .Add(new DisposeSystem())
 #if UNITY_EDITOR
                 // add debug systems for custom worlds here, for example:
                 // .Add (new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem ("events"))
                 .Add (new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem ())
 #endif
-                .DelHere<OnEnterTriggerEventData>()
-                .DelHere<OnExitTriggerEventData>()
+                
+                .DelHere<DisposeData>()
                 .Inject()
                 .Init();
         

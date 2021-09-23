@@ -27,7 +27,7 @@ namespace Game.Systems
         private readonly EcsWorld _world = default;
         
         [EcsPool] 
-        private readonly EcsPool<TransformData> _transformPool = default;
+        private readonly EcsPool<TransformRef> _transformPool = default;
         
         [EcsPool] 
         private readonly EcsPool<InputData> _inputPool = default;
@@ -39,16 +39,13 @@ namespace Game.Systems
         private readonly EcsPool<PlayerData> _playerPool = default;
         
         [EcsPool] 
-        private readonly EcsPool<PositionData> _positionPool = default;
+        private readonly EcsPool<LocalToWorldData> _positionPool = default;
         
         [EcsPool] 
         private readonly EcsPool<NetSyncPositionData> _networkSyncPositionPool = default;
         
         [EcsPool] 
-        private readonly EcsPool<ColliderData> _colliderPool = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<TriggerData> _triggerPool = default;
+        private readonly EcsPool<CircleCollider2DRef> _colliderPool = default;
         
         [EcsPool] 
         private readonly EcsPool<ShopData> _shopPool = default;
@@ -93,16 +90,19 @@ namespace Game.Systems
                 photonView.GetComponent<SyncPosition>().SetCharacterEntity(entity);
 
                 var go = Object.Instantiate(Resources.Load(_dwarfPrefab)) as GameObject;
+                
+                if(go == null)
+                    return;
 
                 ref var transformData = ref _transformPool.Add(entity);
-                transformData.TransformRef = go.transform;
+                transformData.Value = go.transform;
 
                 var spawnPoint = _spawnPointsList[i];
                 
                 ref var positionData = ref _positionPool.Add(entity);
                 ref var networkSyncPositionData = ref _networkSyncPositionPool.Add(entity);
                 
-                positionData.Value = networkSyncPositionData.CurrentValue = spawnPoint;
+                positionData.Position = networkSyncPositionData.CurrentValue = spawnPoint;
 
                 if (photonView.IsMine)
                 {
@@ -116,10 +116,8 @@ namespace Game.Systems
                 playerData.PhotonView = photonView;
                 
                 ref var colliderData = ref _colliderPool.Add(entity);
-                colliderData.Radius = _charColliderRadius;
-                
-                ref var triggerData = ref _triggerPool.Add(entity);
-                triggerData.Radius = _charColliderRadius;
+                colliderData.Value = go.AddComponent<CircleCollider2D>(); 
+                colliderData.Value.radius = _charColliderRadius;
             }
         }
 
@@ -152,14 +150,28 @@ namespace Game.Systems
             //Shop
             var entity = _world.NewEntity();
 
-            Object.Instantiate(Resources.Load(_shopPrefab));
+            var go = Object.Instantiate(Resources.Load(_shopPrefab)) as GameObject;
+            
+            if(go == null)
+                return;
+            
+            ref var transformData = ref _transformPool.Add(entity);
+            transformData.Value = go.transform;
+            
+            ref var positionData = ref _positionPool.Add(entity);
+            positionData.Position = go.transform.position;
 
             ref var colliderData = ref _colliderPool.Add(entity);
-            colliderData.Radius = _shopColliderRadius;
+            colliderData.Value = go.AddComponent<CircleCollider2D>(); 
+            colliderData.Value.radius = _shopColliderRadius;
+            colliderData.Value.isTrigger = true;
             
-            ref var triggerData = ref _triggerPool.Add(entity);
-            triggerData.Radius = _shopTriggerRadius;
+            var child = _world.NewEntity();
+
+            var childGO = Object.Instantiate(new GameObject("Collider"), go.transform);
             
+            
+
             _positionPool.Add(entity);
             _shopPool.Add(entity);
         }

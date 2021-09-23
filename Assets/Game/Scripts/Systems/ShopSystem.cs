@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game.Systems
 {
-    public class ShopSystem : IEcsInitSystem, IEcsRunSystem, ITriggerEventSystem
+    public class ShopSystem : IEcsRunSystem
     {
         [EcsWorld] 
         private readonly EcsWorld _world = default;
@@ -30,11 +30,6 @@ namespace Game.Systems
 
         [EcsPool]
         private readonly EcsPool<ShopData> _shopPool = default;
-
-        public void Init(EcsSystems systems)
-        {
-            _sharedData.TriggerEventSystems.Add(this);
-        }
 
         public void Run(EcsSystems systems)
         {

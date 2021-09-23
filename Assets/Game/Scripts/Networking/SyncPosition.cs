@@ -10,7 +10,7 @@ namespace Game.Networking
     {
         private int _characterEntity = -1;
 
-        private EcsPool<PositionData> _positionPool = default;
+        private EcsPool<LocalToWorldData> _positionPool = default;
         private EcsPool<NetSyncPositionData> _netSyncPositionPool = default;
         private void Start()
         {
@@ -21,7 +21,7 @@ namespace Game.Networking
         public void SetCharacterEntity(int entity)
         {
             _characterEntity = entity;
-            _positionPool = RuntimeData.EcsWorld.GetPool<PositionData> ();
+            _positionPool = RuntimeData.EcsWorld.GetPool<LocalToWorldData> ();
             _netSyncPositionPool = RuntimeData.EcsWorld.GetPool<NetSyncPositionData> ();
         }
 
@@ -30,13 +30,13 @@ namespace Game.Networking
             if(_characterEntity == -1)
                 return;
             
-            ref var charPos = ref _positionPool.Get(_characterEntity);
+            ref var charLocalToWorld = ref _positionPool.Get(_characterEntity);
             ref var charNetSyncPos = ref _netSyncPositionPool.Get(_characterEntity);
             
             if (stream.IsWriting)
             {
-                stream.SendNext(charPos.Value.x);
-                stream.SendNext(charPos.Value.z);
+                stream.SendNext(charLocalToWorld.Position.x);
+                stream.SendNext(charLocalToWorld.Position.z);
             }
             else if (stream.IsReading)
             {

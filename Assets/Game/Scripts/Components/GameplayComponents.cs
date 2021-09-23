@@ -1,3 +1,4 @@
+using Photon.Pun;
 using UnityEngine;
 
 namespace Game.Components
@@ -6,5 +7,14 @@ namespace Game.Components
     {
         public Vector2 Direction;
         public float Speed;
+    }
+
+    public struct ShopData
+    {
+    }
+
+    public struct PlayerData
+    {
+        public PhotonView PhotonView;
     }
 }
