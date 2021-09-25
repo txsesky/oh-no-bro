@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 137980180578669685}
   - component: {fileID: -8161438960306201336}
   m_Layer: 5
-  m_Name: GoldAmountItem
+  m_Name: GoldAmountElmnt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

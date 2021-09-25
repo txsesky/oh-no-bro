@@ -1,3 +1,4 @@
+using Photon.Pun;
 using UnityEngine;
 
 namespace Game.Components
@@ -7,5 +8,10 @@ namespace Game.Components
         public Vector3 CurrentValue;
         public Vector3 OldValue;
         public float Speed;
+    }
+    
+    public struct PhotonViewRef
+    {
+        public PhotonView Value;
     }
 }

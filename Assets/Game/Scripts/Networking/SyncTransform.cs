@@ -1,33 +1,29 @@
 using System;
 using Game.Components;
+using Game.Extensions;
 using Leopotam.EcsLite;
 using Photon.Pun;
 using UnityEngine;
 
 namespace Game.Networking
 {
-    public class SyncPosition: MonoBehaviour, IPunObservable
+    public class SyncTransform: MonoBehaviour, IPunObservable
     {
         private int _characterEntity = -1;
 
-        private EcsPool<LocalToWorldData> _positionPool = default;
+        private EcsPool<TransformRef> _positionPool = default;
         private EcsPool<NetSyncPositionData> _netSyncPositionPool = default;
-        private void Start()
-        {
-            PhotonNetwork.SendRate = 30;
-            PhotonNetwork.SerializationRate = 30;
-        }
-        
-        public void SetCharacterEntity(int entity)
+
+        public void SetCharacterEntity(int entity, EcsWorld world)
         {
             _characterEntity = entity;
-            _positionPool = RuntimeData.EcsWorld.GetPool<LocalToWorldData> ();
-            _netSyncPositionPool = RuntimeData.EcsWorld.GetPool<NetSyncPositionData> ();
+            _positionPool = world.GetPool<TransformRef> ();
+            _netSyncPositionPool = world.GetPool<NetSyncPositionData> ();
         }
 
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
-            if(_characterEntity == -1)
+            if(_characterEntity.IsNull())
                 return;
             
             ref var charLocalToWorld = ref _positionPool.Get(_characterEntity);
@@ -35,8 +31,9 @@ namespace Game.Networking
             
             if (stream.IsWriting)
             {
-                stream.SendNext(charLocalToWorld.Position.x);
-                stream.SendNext(charLocalToWorld.Position.z);
+                var position = charLocalToWorld.Value.position;
+                stream.SendNext(position.x);
+                stream.SendNext(position.z);
             }
             else if (stream.IsReading)
             {

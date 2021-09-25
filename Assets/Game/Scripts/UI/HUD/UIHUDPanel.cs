@@ -3,9 +3,9 @@ using Game.UI.MainMenu;
 using Photon.Realtime;
 using UnityEngine;
 
-namespace Game.UI.InGame
+namespace Game.UI.HUD
 {
-    public class UIInGamePanel : UIPanel
+    public class UIHUDPanel : UIPanel
     {
         [SerializeField] private Transform _goldAmountListContainer;
 

@@ -10,11 +10,11 @@ namespace Game.Systems
         [EcsShared] 
         private readonly SharedData _sharedData = default;
 
-        [EcsFilter(typeof(LocalToWorldData), typeof(MovementData), typeof(PlayerData))]
+        [EcsFilter(typeof(CharacterControllerRef), typeof(MovementData), typeof(PlayerData))]
         private readonly EcsFilter _movingEntityGroup = default;
 
         [EcsPool] 
-        private readonly EcsPool<LocalToWorldData> _positionPool = default;
+        private readonly EcsPool<CharacterControllerRef> _characterControllerPool = default;
 
         [EcsPool] 
         private readonly EcsPool<MovementData> _movementPool = default;
@@ -26,17 +26,13 @@ namespace Game.Systems
         {
             foreach (var movingEntity in _movingEntityGroup)
             {
-                ref var player = ref _playerPool.Get(movingEntity);
-                if(!player.PhotonView.IsMine)
-                    continue;
-                
-                ref var localToWorld = ref _positionPool.Get(movingEntity);
+                ref var charContrData = ref _characterControllerPool.Get(movingEntity);
                 ref var movement = ref _movementPool.Get(movingEntity);
 
                 if (movement.Direction.x == 0f && movement.Direction.y == 0f) 
                     continue;
                 
-                localToWorld.Position += new Vector3(movement.Direction.x, 0, movement.Direction.y) * movement.Speed * _sharedData.DeltaTime;
+                charContrData.Value.Move(new Vector3(movement.Direction.x, 0, movement.Direction.y) * movement.Speed * _sharedData.DeltaTime);
             }
         }
     }

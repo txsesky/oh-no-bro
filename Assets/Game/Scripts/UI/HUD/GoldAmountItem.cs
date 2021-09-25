@@ -2,7 +2,7 @@ using Photon.Realtime;
 using TMPro;
 using UnityEngine;
 
-namespace Game.UI.MainMenu
+namespace Game.UI.HUD
 {
     public class GoldAmountItem : MonoBehaviour
     {

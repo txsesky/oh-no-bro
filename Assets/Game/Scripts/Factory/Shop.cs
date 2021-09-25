@@ -1,6 +1,6 @@
 using System;
 
-namespace Game.BaseClasses
+namespace Game.Factory
 {
     [Serializable]
     public class Shop

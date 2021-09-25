@@ -2,6 +2,7 @@ using Game.Components;
 using Game.Extensions;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using UnityEngine;
 
 namespace Game.Systems
 {
@@ -11,11 +12,18 @@ namespace Game.Systems
         private readonly EcsWorld _world = default;
 
         [EcsFilter(typeof(DisposeData))]
-        [EcsFilterExclude(typeof(HierarchyData))]
+        [EcsFilterExclude(typeof(HierarchyData), typeof(TransformRef))]
         private readonly EcsFilter _disposedGroup = default;
         
-        [EcsFilter(typeof(DisposeData), typeof(HierarchyData))]
-        private readonly EcsFilter _disposedWithHierarchyGroup = default;
+        [EcsFilter(typeof(DisposeData), typeof(TransformRef))]
+        [EcsFilterExclude(typeof(HierarchyData))]
+        private readonly EcsFilter _disposedWithTransformGroup = default;
+        
+        [EcsFilter(typeof(DisposeData), typeof(TransformRef), typeof(HierarchyData))]
+        private readonly EcsFilter _disposedWithTransformHierarchyGroup = default;
+
+        [EcsPool] 
+        private readonly EcsPool<TransformRef> _transformPool = default;
 
         [EcsPool] 
         private readonly EcsPool<HierarchyData> _hierarchyPool = default;
@@ -26,8 +34,14 @@ namespace Game.Systems
             {
                 _world.DelEntity(disposedEntity);
             }
+            
+            foreach (var disposedEntity in _disposedWithTransformGroup)
+            {
+                Object.Destroy(_transformPool.Get(disposedEntity).Value);
+                _world.DelEntity(disposedEntity);
+            }
 
-            foreach (var disposedEntity in _disposedWithHierarchyGroup)
+            foreach (var disposedEntity in _disposedWithTransformHierarchyGroup)
             {
                 ref var hierarchyData = ref _hierarchyPool.Get(disposedEntity);
 
@@ -88,6 +102,7 @@ namespace Game.Systems
                     _world.DelEntity(curr);
                 }
                 
+                Object.Destroy(_transformPool.Get(disposedEntity).Value);
                 _world.DelEntity(disposedEntity);
             }
         }

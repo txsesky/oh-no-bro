@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.Components
@@ -15,6 +16,13 @@ namespace Game.Components
         public int ChildrenCount;
     }
 
+    public struct SetParentData
+    {
+        public int Entity;
+        public Vector3 LocalTranslation;
+    }
+
+
     public struct InputData
     {
         public bool IsPerformedToMove;
@@ -22,58 +30,23 @@ namespace Game.Components
         public Vector2 Axis;
     }
 
-    public struct LocalToParentData
-    {
-        public Matrix4x4 Value;
-
-        public Vector3 Position
-        {
-            get => new Vector3(Value.m03, Value.m13, Value.m23);
-            set
-            {
-                Value.m03 = value.x;
-                Value.m13 = value.y;
-                Value.m23 = value.z;
-            }
-        }
-
-        public Vector3 Forward;
-        public Vector3 Right;
-        public Vector3 Up;
-    }
-
-    public struct LocalToWorldData
-    {
-        public Matrix4x4 Value;
-
-        public Vector3 Position
-        {
-            get => new Vector3(Value.m03, Value.m13, Value.m23);
-            set
-            {
-                Value.m03 = value.x;
-                Value.m13 = value.y;
-                Value.m23 = value.z;
-            }
-        }
-
-        public Vector3 Forward;
-        public Vector3 Right;
-        public Vector3 Up;
-    }
-
     public struct TransformRef
     {
         public Transform Value;
     }
 
-    public struct Rigidbody2DRef
+    public struct RigidbodyRef
     {
-        public Rigidbody2D Value;
+        public Rigidbody Value;
     }
 
-    public struct CircleCollider2DRef
+    public struct SphereColliderRef
     {
-        public CircleCollider2D Value;
+        public SphereCollider Value;
+    }
+    
+    public struct CharacterControllerRef
+    {
+        public CharacterController Value;
     }
 }

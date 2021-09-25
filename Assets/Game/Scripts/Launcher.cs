@@ -21,7 +21,10 @@ namespace Game
             _gameVersion = Application.version;
             
             PhotonNetwork.AutomaticallySyncScene = true;
-
+            PhotonNetwork.NickName = "Player " + Random.Range(0, 10000).ToString("0000");
+            PhotonNetwork.SendRate = 30;
+            PhotonNetwork.SerializationRate = 30;
+            
             MessageBus.CreateRoomEvent += CreateRoom;
             MessageBus.LeaveRoomEvent += LeaveRoom;
             MessageBus.JoinRoomEvent += JoinRoom;

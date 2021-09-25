@@ -16,5 +16,7 @@ namespace Game.Events
         public static Action<string> CreateRoomEvent;
         public static Action LeaveRoomEvent;
         public static Action<RoomInfo> JoinRoomEvent;
+        public static Action ShopOpenUIEvent;
+        public static Action ShopCloseUIEvent;
     }
 }

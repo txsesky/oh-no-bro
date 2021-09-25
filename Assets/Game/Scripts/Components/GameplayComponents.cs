@@ -15,6 +15,5 @@ namespace Game.Components
 
     public struct PlayerData
     {
-        public PhotonView PhotonView;
     }
 }

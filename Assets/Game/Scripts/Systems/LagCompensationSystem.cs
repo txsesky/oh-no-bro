@@ -8,11 +8,11 @@ namespace Game.Systems
 {
     public class LagCompensationSystem : IEcsRunSystem
     {
-        [EcsFilter(typeof(LocalToWorldData), typeof(NetSyncPositionData))]
+        [EcsFilter(typeof(TransformRef), typeof(NetSyncPositionData))]
         private readonly EcsFilter _netSyncPositionGroup = default;
 
         [EcsPool]
-        private readonly EcsPool<LocalToWorldData> _positionPool = default;
+        private readonly EcsPool<TransformRef> _positionPool = default;
         
         [EcsPool]
         private readonly EcsPool<NetSyncPositionData> _netSyncPositionPool = default;
@@ -24,9 +24,11 @@ namespace Game.Systems
                 ref var localToWorld = ref _positionPool.Get(entity);
                 ref var netSyncPos = ref _netSyncPositionPool.Get(entity);
 
-                netSyncPos.OldValue = localToWorld.Position;
+                var position = localToWorld.Value.position;
+                netSyncPos.OldValue = position;
 
-                localToWorld.Position = Vector3.MoveTowards(localToWorld.Position, netSyncPos.CurrentValue, Time.deltaTime * netSyncPos.Speed * 10);
+                position = Vector3.MoveTowards(position, netSyncPos.CurrentValue, Time.deltaTime * netSyncPos.Speed * 10);
+                localToWorld.Value.position = position;
             }
         }
     }

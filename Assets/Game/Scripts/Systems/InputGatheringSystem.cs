@@ -2,6 +2,7 @@ using Game.Components;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Game.Systems
@@ -34,6 +35,15 @@ namespace Game.Systems
                 input.IsPerformedToMove = _isPerformedToMove;
                 input.PointerPosition = _pointerPosition;
                 input.Axis = _axis;
+            }
+            
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                foreach (var inputEntity in _inputGroup)
+                {
+                    ref var input = ref _inputPool.Get(inputEntity);
+                    input.IsPerformedToMove = false;
+                }
             }
 
             //_isPerformedToMove = false; 

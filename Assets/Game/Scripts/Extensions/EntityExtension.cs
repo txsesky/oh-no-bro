@@ -17,7 +17,12 @@ namespace Game.Extensions
         {
             //TODO: move this all to system
             var hierarchyPool = ecsWorld.GetPool<HierarchyData>();
-            var localToParentPool = ecsWorld.GetPool<LocalToParentData>();
+            var transformPool = ecsWorld.GetPool<TransformRef>();
+
+            var childTransform = transformPool.Get(child).Value;
+            var parentTransform = transformPool.Get(parent).Value;
+            
+            childTransform.SetParent(parentTransform);
 
             if (!hierarchyPool.Has(parent))
             {
@@ -94,19 +99,8 @@ namespace Game.Extensions
                     }
                 }
             }
-
-            if (!localToParentPool.Has(child))
-            {
-                ref var localToParentData = ref localToParentPool.Add(child);
-                localToParentData.Position = localTranslation;
-            }
-            else
-            {
-                ref var localToParentData = ref localToParentPool.Get(child);
-                localToParentData.Position = localTranslation;
-            }
         }
-
+        
         private static int GetEntityWithHierarchyNullNext(in EcsPool<HierarchyData> hierarchyPool, int entity)
         {
             while (true)

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
-using ExitGames.Client.Photon;
 using Game.Components;
+using Game.Factory;
 using Game.Networking;
+using LeoEcsPhysics;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Photon.Pun;
@@ -12,65 +13,76 @@ namespace Game.Systems
     public class SpawnSystem : IEcsInitSystem, IEcsRunSystem
     {
         private string _photonViewPrefab = "Prefabs/Network/PhotonView";
-        private string _dwarfPrefab = "Prefabs/Characters/Dwarf";
         private string _shopPrefab = "Prefabs/Buildings/Shop";
         private float _spawnPointsDistance = 15f;
         private float _spawnPointsHeight = 0f;
-        private float _movementSpeed = 10f;
-        private float _charColliderRadius = 0.5f;
         private float _shopColliderRadius = 3f;
         private float _shopTriggerRadius = 4f;
 
         private readonly List<Vector3> _spawnPointsList = new List<Vector3>();
-        
-        [EcsWorld] 
-        private readonly EcsWorld _world = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<TransformRef> _transformPool = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<InputData> _inputPool = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<MovementData> _movementPool = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<PlayerData> _playerPool = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<LocalToWorldData> _positionPool = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<NetSyncPositionData> _networkSyncPositionPool = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<CircleCollider2DRef> _colliderPool = default;
-        
-        [EcsPool] 
-        private readonly EcsPool<ShopData> _shopPool = default;
 
-        private bool _arePhotonViewsInitiated;
+        [EcsWorld] private readonly EcsWorld _world = default;
+
+        [EcsShared] private readonly SharedData _sharedData = default;
+
+        [EcsPool] private readonly EcsPool<TransformRef> _transformPool = default;
+
+        [EcsPool] private readonly EcsPool<InputData> _inputPool = default;
+
+        [EcsPool] private readonly EcsPool<PhotonViewRef> _photonViewPool = default;
+
+        [EcsPool] private readonly EcsPool<NetSyncPositionData> _networkSyncPositionPool = default;
+
+        [EcsPool] private readonly EcsPool<SphereColliderRef> _colliderPool = default;
+
+        [EcsPool] private readonly EcsPool<RigidbodyRef> _rigidbodyPool = default;
+
+        [EcsPool] private readonly EcsPool<PlayerData> _playerPool = default;
+
+        [EcsPool] private readonly EcsPool<ShopData> _shopPool = default;
+
+        [EcsPool] private readonly EcsPool<SetParentData> _setParentPool = default;
+
+        private bool _arePlayersSpawned;
 
         public void Init(EcsSystems systems)
         {
-            _arePhotonViewsInitiated = false;
-            GenerateSpawnPoints();
-            PhotonNetwork.Instantiate(_photonViewPrefab, Vector3.zero, Quaternion.identity);
+            _arePlayersSpawned = false;
+            
+            if (_sharedData.GameState.GameMode == GameMode.Client)
+            {
+                GenerateSpawnPoints();
+                PhotonNetwork.Instantiate(_photonViewPrefab, Vector3.zero, Quaternion.identity);
+            }
+            
             SpawnEnvironment();
         }
 
         public void Run(EcsSystems systems)
         {
-            if(_arePhotonViewsInitiated)
+            if (_arePlayersSpawned)
                 return;
-            
-            var photonViews = GameObject.FindObjectsOfType<PhotonView>();
-            
-            if(photonViews.Length != PhotonNetwork.PlayerList.Length)
+
+            if (_sharedData.GameState.GameMode == GameMode.SinglePlayer)
+            {
+                _arePlayersSpawned = true;
+
+                var entity = _world.NewEntity();
+                
+                var character = new Character(entity, _world, new Vector3(_spawnPointsDistance, 0,0), Quaternion.identity);
+               
+                _inputPool.Add(entity);
+                _playerPool.Add(entity);
+
                 return;
-            
-            _arePhotonViewsInitiated = true;
+            }
+
+            var photonViews = Object.FindObjectsOfType<PhotonView>();
+
+            if (photonViews.Length != PhotonNetwork.PlayerList.Length)
+                return;
+
+            _arePlayersSpawned = true;
 
             for (int i = 0; i < photonViews.Length; i++)
             {
@@ -87,37 +99,21 @@ namespace Game.Systems
 
                 var entity = _world.NewEntity();
                 
-                photonView.GetComponent<SyncPosition>().SetCharacterEntity(entity);
+                var character = new Character(entity, _world, _spawnPointsList[i], Quaternion.identity);//TODO createmethod
 
-                var go = Object.Instantiate(Resources.Load(_dwarfPrefab)) as GameObject;
-                
-                if(go == null)
-                    return;
-
-                ref var transformData = ref _transformPool.Add(entity);
-                transformData.Value = go.transform;
-
-                var spawnPoint = _spawnPointsList[i];
-                
-                ref var positionData = ref _positionPool.Add(entity);
                 ref var networkSyncPositionData = ref _networkSyncPositionPool.Add(entity);
-                
-                positionData.Position = networkSyncPositionData.CurrentValue = spawnPoint;
+                networkSyncPositionData.CurrentValue = _spawnPointsList[i];
+
+                ref var photonViewData = ref _photonViewPool.Add(entity);
+                photonViewData.Value = photonView;
 
                 if (photonView.IsMine)
                 {
-                    ref var inputData = ref _inputPool.Add(entity);
+                    _inputPool.Add(entity);
+                    _playerPool.Add(entity);
                 }
 
-                ref var movementData = ref _movementPool.Add(entity);
-                movementData.Speed = _movementSpeed;
-
-                ref var playerData = ref _playerPool.Add(entity);
-                playerData.PhotonView = photonView;
-                
-                ref var colliderData = ref _colliderPool.Add(entity);
-                colliderData.Value = go.AddComponent<CircleCollider2D>(); 
-                colliderData.Value.radius = _charColliderRadius;
+                photonView.GetComponent<SyncTransform>().SetCharacterEntity(entity, _world);
             }
         }
 
@@ -138,42 +134,50 @@ namespace Game.Systems
             }
         }
 
-        private void GetSpawnPoint(out Vector3 spawnPos, out Quaternion spawnRot)
-        {
-            var id = PhotonNetwork.LocalPlayer.ActorNumber;
-            spawnPos = _spawnPointsList[(id == -1) ? 0 : id % _spawnPointsList.Count];
-            spawnRot = Quaternion.identity;
-        }
-
         private void SpawnEnvironment()
         {
             //Shop
             var entity = _world.NewEntity();
 
             var go = Object.Instantiate(Resources.Load(_shopPrefab)) as GameObject;
-            
-            if(go == null)
+
+            if (go == null)
                 return;
-            
+
             ref var transformData = ref _transformPool.Add(entity);
             transformData.Value = go.transform;
-            
-            ref var positionData = ref _positionPool.Add(entity);
-            positionData.Position = go.transform.position;
 
+            //TODO move to system
             ref var colliderData = ref _colliderPool.Add(entity);
-            colliderData.Value = go.AddComponent<CircleCollider2D>(); 
-            colliderData.Value.radius = _shopColliderRadius;
+            colliderData.Value = go.AddComponent<SphereCollider>();
+            colliderData.Value.radius = _shopTriggerRadius;
             colliderData.Value.isTrigger = true;
-            
+
+            ref var rbData = ref _rigidbodyPool.Add(entity);
+            rbData.Value = go.AddComponent<Rigidbody>();
+            rbData.Value.isKinematic = true;
+
+            go.AddComponent<OnTriggerEnterChecker>();
+            go.AddComponent<OnTriggerExitChecker>();
+
+            _shopPool.Add(entity);
+
             var child = _world.NewEntity();
 
-            var childGO = Object.Instantiate(new GameObject("Collider"), go.transform);
-            
-            
+            var childGO = new GameObject("Collider");
 
-            _positionPool.Add(entity);
-            _shopPool.Add(entity);
+            if (childGO == null)
+                return;
+
+            ref var tData = ref _transformPool.Add(child);
+            tData.Value = childGO.transform;
+
+            ref var cData = ref _colliderPool.Add(child);
+            cData.Value = childGO.AddComponent<SphereCollider>();
+            cData.Value.radius = _shopColliderRadius;
+
+            ref var setParentData = ref _setParentPool.Add(child);
+            setParentData.Entity = entity;
         }
     }
 }

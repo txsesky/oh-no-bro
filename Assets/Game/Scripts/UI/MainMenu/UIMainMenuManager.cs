@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Game.Events;
+using Game.UI.Common;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 
 namespace Game.UI
 {
-    public class UIMainMenuManager : MonoBehaviour
+    public class UIMainMenuManager : UIManager
     {
         [SerializeField] private UIMainMenuPanel _uiMainMenuPanel;
         [SerializeField] private UICreateRoomPanel _uiCreateRoomPanel;
@@ -18,8 +19,19 @@ namespace Game.UI
 
         private void Awake()
         {
-            ResetPanels();
+            Panels = new List<UIPanel>
+            {
+                _uiMainMenuPanel,
+                _uiCreateRoomPanel,
+                _uiFindRoomPanel,
+                _uiRoomPanel,
+                _uiErrorPanel,
+                _uiLoadingPanel
+            };
             
+            ResetPanels();
+            _uiLoadingPanel.Show();
+        
             MessageBus.JoinedLobbyEvent += OpenMainMenuPanel;
             MessageBus.JoinedRoomEvent += OpenRoomPanel;
             MessageBus.CreateRoomFailedEvent += OpenErrorPanel;
@@ -39,17 +51,7 @@ namespace Game.UI
             MessageBus.OtherLeftRoomEvent -= RemovePlayer;
             MessageBus.MeLeftRoomEvent -= CleanPlayers;
         }
-
-        private void ResetPanels()
-        {
-            _uiMainMenuPanel.Hide();
-            _uiCreateRoomPanel.Hide();
-            _uiFindRoomPanel.Hide();
-            _uiRoomPanel.Hide();
-            _uiErrorPanel.Hide();
-            _uiLoadingPanel.Show();
-        }
-
+        
         private void InitRoomList(List<RoomInfo> roomList)
         {
             _uiFindRoomPanel.InitRoomList(roomList);
