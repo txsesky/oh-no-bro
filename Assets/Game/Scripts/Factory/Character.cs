@@ -15,10 +15,11 @@ namespace Game.Factory
 
         public Character(int entity, EcsWorld ecsWorld, Vector3 position, Quaternion rotation)
         {
-            var transformPool = ecsWorld.GetPool<TransformRef>();
-            var movementPool = ecsWorld.GetPool<MovementData>();
-            var characterControllerPool = ecsWorld.GetPool<CharacterControllerRef>();
-            var rigidbodyPool = ecsWorld.GetPool<RigidbodyRef>();
+            var transformPool = ecsWorld.GetPool<TransformRefData>();
+            var movementSpeedPool = ecsWorld.GetPool<MovementSpeedData>();
+            var movementDirectionPool = ecsWorld.GetPool<MovementDirectionData>();
+            var characterControllerPool = ecsWorld.GetPool<CharacterControllerRefData>();
+            var rigidbodyPool = ecsWorld.GetPool<RigidbodyRefData>();
             
             var go = Object.Instantiate(Resources.Load(_dwarfPrefab)) as GameObject;
 
@@ -37,8 +38,11 @@ namespace Game.Factory
             rbData.Value = go.AddComponent<Rigidbody>();
             rbData.Value.isKinematic = true;
 
-            ref var movementData = ref movementPool.Add(entity);
-            movementData.Speed = _movementSpeed;
+            ref var movementSpeedData = ref movementSpeedPool.Add(entity);
+            movementSpeedData.Base = _movementSpeed;
+            movementSpeedData.StatModifier = new StatModifier{AddVal = 0, MultVal = 1};
+
+            movementDirectionPool.Add(entity);
         }
     }
 }

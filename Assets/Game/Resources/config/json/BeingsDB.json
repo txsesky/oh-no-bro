@@ -1,0 +1,15 @@
+{"BeingsDB" : [
+  {
+    "name" : "DwarfMiner",
+    "base" : "Being",
+    "stats" : {
+      "hp": 100,
+      "hpr": 0.5,
+      "ms": 1,
+      "ac": 1.7,
+      "dmg": 5
+    },
+    "collider_radius" : 1
+  }
+]
+}

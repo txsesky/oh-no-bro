@@ -12,7 +12,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "aa7e0b5d8c8505fd457e230f4972882dec567362"
+      "hash": "b097742f3ee53697e8f991efb88aa3035172ceba"
     },
     "com.leopotam.ecslite.extendedsystems": {
       "version": "https://github.com/Leopotam/ecslite-extendedsystems.git",
@@ -21,12 +21,26 @@
       "dependencies": {},
       "hash": "127ee50c5c8339c9a5b531354711e7bcf9214d7d"
     },
+    "com.leopotam.ecslite.unity.ugui": {
+      "version": "https://github.com/Leopotam/ecslite-unity-ugui.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "072d4c699c7a6aa9aaa5cf92ef6a847fd33a926a"
+    },
     "com.leopotam.ecslite.unityeditor": {
       "version": "https://github.com/Leopotam/ecslite-unityeditor.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
       "hash": "f8fb1468e91dd89681ade447b5d8fbec283e8865"
+    },
+    "com.leopotam.globals": {
+      "version": "https://github.com/Leopotam/globals.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "e1c7e87b4f3c1cb3a96f7be924bd715efafa9374"
     },
     "com.supremestranger.leoecs-lite-physics": {
       "version": "https://github.com/supremestranger/leoecs-lite-physics.git",
@@ -137,13 +151,6 @@
       "source": "git",
       "dependencies": {},
       "hash": "bb3d5067e49e403d8b8ba15c036d313b4dd2c696"
-    },
-    "com.voody.unileo.lite": {
-      "version": "https://github.com/voody2506/UniLeo-Lite.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "255db5cfc4d4eac4ba77adfb1734d48f9de4a8a1"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

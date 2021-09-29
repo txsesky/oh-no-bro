@@ -7,93 +7,106 @@ using Game.Extensions;
 using LeoEcsPhysics;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using Leopotam.EcsLite.Unity.Ugui;
 using UnityEngine;
 
-namespace Game.Systems
-{
-    public class ShopSystem : IEcsRunSystem
-    {
-        [EcsWorld] private readonly EcsWorld _world = default;
+namespace Game.Systems {
+	sealed class ShopSystem : IEcsRunSystem {
+		[EcsFilter(typeof(TransformRefData))]
+		readonly EcsFilter _transformGroup = default;
 
-        [EcsShared] private readonly SharedData _sharedData = default;
+		[EcsFilter(typeof(OnTriggerEnterEvent))]
+		readonly EcsFilter _playerOnEnterTriggerEntities = default;
 
-        [EcsFilter(typeof(TransformRef))] private readonly EcsFilter _transformGroup = default;
+		[EcsFilter(typeof(OnTriggerExitEvent))]
+		readonly EcsFilter _playerOnExitTriggerEntities = default;
 
-        [EcsFilter(typeof(OnTriggerEnterEvent))]
-        private readonly EcsFilter _playerOnEnterTriggerEntities = default;
+		[EcsFilter(typeof(UIShopPanelRef))]
+		readonly EcsFilter _uiShopPanelEntities = default;
 
-        [EcsFilter(typeof(OnTriggerExitEvent))]
-        private readonly EcsFilter _playerOnExitTriggerEntities = default;
+		[EcsFilter(Idents.Worlds.UiEvents, typeof(EcsUguiClickEvent))]
+		readonly EcsFilter _clickEventEntities = default;
+		
+		[EcsPool(Idents.Worlds.UiEvents)]
+		readonly EcsPool<EcsUguiClickEvent> _clickEventPool = default;
 
-        [EcsPool] private readonly EcsPool<PlayerData> _playerDataPool = default;
+		readonly EcsPool<PlayerData> _playerDataPool = default;
+		readonly EcsPool<OnTriggerEnterEvent> _onEnterTriggerEventPool = default;
+		readonly EcsPool<OnTriggerExitEvent> _onExitTriggerEventPool = default;
+		readonly EcsPool<ShopData> _shopPool = default;
+		readonly EcsPool<TransformRefData> _transformPool = default;
+		readonly EcsPool<UIShopPanelRef> _uiShopPanelPool = default;
+		readonly EcsPool<UIShopItemElmntRef> _uiShopItemPool = default;
+		
+		readonly Dictionary<Transform, int> _transforms = new Dictionary<Transform, int>();
 
-        [EcsPool] private readonly EcsPool<OnTriggerEnterEvent> _onEnterTriggerEventPool = default;
+		public void Run(EcsSystems systems) {
+			_transforms.Clear();
 
-        [EcsPool] private readonly EcsPool<OnTriggerExitEvent> _onExitTriggerEventPool = default;
+			foreach (var entity in _transformGroup) {
+				_transforms.Add(_transformPool.Get(entity).Value, entity);
+			}
 
-        [EcsPool] private readonly EcsPool<ShopData> _shopPool = default;
+			foreach (var entity in _playerOnEnterTriggerEntities) {
+				ref var eventData = ref _onEnterTriggerEventPool.Get(entity);
 
-        [EcsPool] private readonly EcsPool<TransformRef> _transformPool = default;
+				var playerTransform = eventData.collider.transform;
+				var shopTransform = eventData.senderGameObject.transform;
 
-        private Dictionary<Transform, int> _transforms = new Dictionary<Transform, int>();
+				var a = _transforms.ContainsKey(playerTransform) ? _transforms[playerTransform] : -1;
+				var b = _transforms.ContainsKey(shopTransform) ? _transforms[shopTransform] : -1;
 
-        public void Run(EcsSystems systems)
-        {
-            _transforms.Clear();
+				foreach (var uiShopPanelEntity in _uiShopPanelEntities) {
+					Trigger(a, b, () => _uiShopPanelPool.Get(uiShopPanelEntity).Value.Show());
+				}
+			}
 
-            foreach (var entity in _transformGroup)
-            {
-                _transforms.Add(_transformPool.Get(entity).Value, entity);
-            }
+			foreach (var entity in _playerOnExitTriggerEntities) {
+				ref var eventData = ref _onExitTriggerEventPool.Get(entity);
 
-            foreach (var entity in _playerOnEnterTriggerEntities)
-            {
-                ref var eventData = ref _onEnterTriggerEventPool.Get(entity);
+				var playerTransform = eventData.collider.transform;
+				var shopTransform = eventData.senderGameObject.transform;
 
-                var playerTransform = eventData.collider.transform;
-                var shopTransform = eventData.senderGameObject.transform;
+				var a = _transforms.ContainsKey(playerTransform) ? _transforms[playerTransform] : -1;
+				var b = _transforms.ContainsKey(shopTransform) ? _transforms[shopTransform] : -1;
 
-                var a = _transforms.ContainsKey(playerTransform) ? _transforms[playerTransform] : -1;
-                var b = _transforms.ContainsKey(shopTransform) ? _transforms[shopTransform] : -1;
+				foreach (var uiShopPanelEntity in _uiShopPanelEntities) {
+					Trigger(a, b, () => _uiShopPanelPool.Get(uiShopPanelEntity).Value.Hide());
+				}
+			}
 
-                Trigger(a, b, () => MessageBus.ShopOpenUIEvent?.Invoke());
-            }
+			foreach (var clickEventEntity in _clickEventEntities) {
+				Debug.Log("+MovementSpeed");
 
-            foreach (var entity in _playerOnExitTriggerEntities)
-            {
-                ref var eventData = ref _onExitTriggerEventPool.Get(entity);
+				var clickEventData = _clickEventPool.Get(clickEventEntity);
 
-                var playerTransform = eventData.collider.transform;
-                var shopTransform = eventData.senderGameObject.transform;
+				var btnEntity = _transforms[clickEventData.Sender.transform.parent];
 
-                var a = _transforms.ContainsKey(playerTransform) ? _transforms[playerTransform] : -1;
-                var b = _transforms.ContainsKey(shopTransform) ? _transforms[shopTransform] : -1;
+				if (_uiShopItemPool.Has(btnEntity)) {
+					Debug.Log("+MovementSpeed");
+				}
+			}
 
-                Trigger(a, b, () =>  MessageBus.ShopCloseUIEvent?.Invoke());
-            }
-        }
+			//gcd
+		}
 
-        private void Trigger(int a, int b, Action action)
-        {
-            if (a.IsNull() || b.IsNull())
-                return;
+		void Trigger(int a, int b, Action action) {
+			if (a.IsNull() || b.IsNull())
+				return;
 
-            if (_playerDataPool.Has(a) && _shopPool.Has(b))
-            {
-                ref var playerData = ref _playerDataPool.Get(a);
-                ref var shopData = ref _shopPool.Get(b);
+			if (_playerDataPool.Has(a) && _shopPool.Has(b)) {
+				ref var playerData = ref _playerDataPool.Get(a);
+				ref var shopData = ref _shopPool.Get(b);
 
-                action?.Invoke();
-            }
+				action?.Invoke();
+			}
 
-            if (_playerDataPool.Has(b) && _shopPool.Has(a))
-            {
-                ref var playerData = ref _playerDataPool.Get(b);
-                ref var shopData = ref _shopPool.Get(a);
-                
-                action?.Invoke();
-                
-            }
-        }
-    }
+			if (_playerDataPool.Has(b) && _shopPool.Has(a)) {
+				ref var playerData = ref _playerDataPool.Get(b);
+				ref var shopData = ref _shopPool.Get(a);
+
+				action?.Invoke();
+			}
+		}
+	}
 }

@@ -38,15 +38,15 @@ namespace Game.UI
             foreach (var roomInfo in roomList)
             {
                 var go = Instantiate(_roomListItemPrefab, _roomListContainer);
-                var c = go.GetComponent<RoomItem>();
+                var c = go.GetComponent<UIRoomElmnt>();
                 c.Setup(roomInfo);
                 c.RoomButtonAction += JoinRoom;
             }
         }
 
-        public void JoinRoom(RoomInfo roomInfo, RoomItem roomItem)
+        public void JoinRoom(RoomInfo roomInfo, UIRoomElmnt uiRoomElmnt)
         {
-            roomItem.RoomButtonAction -= JoinRoom; // разобраться
+            uiRoomElmnt.RoomButtonAction -= JoinRoom; // разобраться
             JoinRoomAction.Invoke(roomInfo);
         }
         

@@ -13,11 +13,11 @@ namespace Game.Extensions
             return entity == -1;
         }
         
-        public static void SetParent(this int child, int parent, EcsWorld ecsWorld, Vector3 localTranslation)
+        public static void SetParent(this int child, EcsWorld ecsWorld, int parent, Vector3 localTranslation)
         {
             //TODO: move this all to system
             var hierarchyPool = ecsWorld.GetPool<HierarchyData>();
-            var transformPool = ecsWorld.GetPool<TransformRef>();
+            var transformPool = ecsWorld.GetPool<TransformRefData>();
 
             var childTransform = transformPool.Get(child).Value;
             var parentTransform = transformPool.Get(parent).Value;

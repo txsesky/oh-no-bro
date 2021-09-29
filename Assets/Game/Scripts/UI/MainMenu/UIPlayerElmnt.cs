@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace Game.UI.MainMenu
 {
-    public class PlayerItem : MonoBehaviour
+    public class UIPlayerElmnt : MonoBehaviour
     {
         [SerializeField] private TMP_Text _playerNameText;
         public Player Player;

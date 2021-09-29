@@ -4,32 +4,21 @@ using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using UnityEngine;
 
-namespace Game.Systems
-{
-    public class ParentingSystem : IEcsRunSystem
-    {
-        [EcsWorld] 
-        private readonly EcsWorld _world = default;
-        
-        [EcsFilter(typeof(SetParentData))] 
-        private readonly EcsFilter _pendingGroup;
-        
-        [EcsPool]
-        private readonly EcsPool<SetParentData> _setParentPool = default;
-        
-        [EcsPool]
-        private readonly EcsPool<TransformRef> _transformPool = default;
-        
-        public void Run(EcsSystems systems)
-        {
-            foreach (var entity in _pendingGroup)
-            {
-                ref var setParentData = ref _setParentPool.Get(entity);
+namespace Game.Systems {
+	sealed class ParentingSystem : IEcsRunSystem {
+		readonly EcsWorld _world = default;
 
-                entity.SetParent(setParentData.Entity, _world, setParentData.LocalTranslation);
+		[EcsFilter(typeof(SetParentData))]
+		readonly EcsFilter _pendingGroup = default;
 
-                _setParentPool.Del(entity);
-            }
-        }
-    }
+		readonly EcsPool<SetParentData> _setParentPool = default;
+
+		public void Run(EcsSystems systems) {
+			foreach (var entity in _pendingGroup) {
+				ref var setParentData = ref _setParentPool.Get(entity);
+				entity.SetParent(_world, setParentData.Entity, setParentData.LocalTranslation);
+				_setParentPool.Del(entity);
+			}
+		}
+	}
 }

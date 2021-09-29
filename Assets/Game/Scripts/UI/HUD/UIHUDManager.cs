@@ -9,27 +9,27 @@ namespace Game.UI.HUD
     public class UIHUDManager : UIManager
     {
         [SerializeField] private UIHUDPanel _uiHUDPanel;
-        [SerializeField] private UIShopPanel _uiShopPanel;
+        //[SerializeField] private UIShopPanel _uiShopPanel;
 
         private void Awake()
         {
             Panels = new List<UIPanel>
             {
                 _uiHUDPanel,
-                _uiShopPanel
+                //_uiShopPanel
             };
             
             ResetPanels();
             _uiHUDPanel.Show();
 
-            MessageBus.ShopOpenUIEvent += _uiShopPanel.Show;
-            MessageBus.ShopCloseUIEvent += _uiShopPanel.Hide;
+            //MessageBus.ShopOpenUIEvent += _uiShopPanel.Show;
+            //MessageBus.ShopCloseUIEvent += _uiShopPanel.Hide;
         }
 
         private void OnDestroy()
         {
-            MessageBus.ShopOpenUIEvent -= _uiShopPanel.Show;
-            MessageBus.ShopCloseUIEvent -= _uiShopPanel.Hide;
+            //MessageBus.ShopOpenUIEvent -= _uiShopPanel.Show;
+            //MessageBus.ShopCloseUIEvent -= _uiShopPanel.Hide;
         }
     }
 }

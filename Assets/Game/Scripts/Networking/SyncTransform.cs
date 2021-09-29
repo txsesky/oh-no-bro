@@ -11,13 +11,13 @@ namespace Game.Networking
     {
         private int _characterEntity = -1;
 
-        private EcsPool<TransformRef> _positionPool = default;
+        private EcsPool<TransformRefData> _positionPool = default;
         private EcsPool<NetSyncPositionData> _netSyncPositionPool = default;
 
         public void SetCharacterEntity(int entity, EcsWorld world)
         {
             _characterEntity = entity;
-            _positionPool = world.GetPool<TransformRef> ();
+            _positionPool = world.GetPool<TransformRefData> ();
             _netSyncPositionPool = world.GetPool<NetSyncPositionData> ();
         }
 

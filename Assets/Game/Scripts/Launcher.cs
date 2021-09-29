@@ -1,134 +1,111 @@
-using System;
 using System.Collections.Generic;
 using Game.Events;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.Serialization;
-using WebSocketSharp;
 using Random = UnityEngine.Random;
 
-namespace Game
-{
-    public class Launcher : MonoBehaviourPunCallbacks
-    {
-        private string _gameVersion = "1";
-        [SerializeField] private byte _maxPlayersPerRoom = 8;
-        
-        private void Awake()
-        {
-            _gameVersion = Application.version;
-            
-            PhotonNetwork.AutomaticallySyncScene = true;
-            PhotonNetwork.NickName = "Player " + Random.Range(0, 10000).ToString("0000");
-            PhotonNetwork.SendRate = 30;
-            PhotonNetwork.SerializationRate = 30;
-            
-            MessageBus.CreateRoomEvent += CreateRoom;
-            MessageBus.LeaveRoomEvent += LeaveRoom;
-            MessageBus.JoinRoomEvent += JoinRoom;
-        }
+namespace Game {
+	public class Launcher : MonoBehaviourPunCallbacks {
+		private string _gameVersion = "1";
 
-        private void OnDestroy()
-        {
-            MessageBus.CreateRoomEvent -= CreateRoom;
-            MessageBus.LeaveRoomEvent -= LeaveRoom;
-            MessageBus.JoinRoomEvent -= JoinRoom;
-        }
+		[SerializeField]
+		byte _maxPlayersPerRoom = 8;
 
-        private void Start()
-        {
-            Connect();
-        }
+		void Awake() {
+			_gameVersion = Application.version;
 
-        private void Connect()
-        {
-            if (PhotonNetwork.IsConnected) return;
-            
-            Debug.Log("Connecting to Master");
-            PhotonNetwork.ConnectUsingSettings();
-            PhotonNetwork.GameVersion = _gameVersion;
-        }
+			PhotonNetwork.AutomaticallySyncScene = true;
+			PhotonNetwork.NickName = "Player " + Random.Range(0, 10000).ToString("0000");
+			PhotonNetwork.SendRate = 30;
+			PhotonNetwork.SerializationRate = 30;
 
-        public override void OnConnectedToMaster()
-        {
-            Debug.Log($"OnConnectedToMaster() was called by PUN ping: {PhotonNetwork.GetPing()}ms");
-            PhotonNetwork.JoinLobby();
-        }
+			MessageBus.CreateRoomEvent += CreateRoom;
+			MessageBus.LeaveRoomEvent += LeaveRoom;
+			MessageBus.JoinRoomEvent += JoinRoom;
+		}
 
-        public override void OnDisconnected(DisconnectCause cause)
-        {
-            Debug.LogWarningFormat("OnDisconnected() was called by PUN with reason {0}", cause);
-        }
+		void OnDestroy() {
+			MessageBus.CreateRoomEvent -= CreateRoom;
+			MessageBus.LeaveRoomEvent -= LeaveRoom;
+			MessageBus.JoinRoomEvent -= JoinRoom;
+		}
 
-        public override void OnJoinedLobby()
-        {
-            Debug.Log("OnJoinedLobby() was called by PUN");
-            MessageBus.JoinedLobbyEvent?.Invoke();
-        }
+		void Start() {
+			Connect();
+		}
 
-        public override void OnLeftLobby()
-        {
-            Debug.Log("OnLeftLobby() was called by PUN");
-        }
+		void Connect() {
+			if (PhotonNetwork.IsConnected) return;
 
-        public void CreateRoom(string roomName)
-        {
-            if (string.IsNullOrEmpty(roomName))
-            {
-                return;
-            }
+			Debug.Log("Connecting to Master");
+			PhotonNetwork.ConnectUsingSettings();
+			PhotonNetwork.GameVersion = _gameVersion;
+		}
 
-            PhotonNetwork.CreateRoom(roomName, new RoomOptions{MaxPlayers = _maxPlayersPerRoom});
-        }
+		public override void OnConnectedToMaster() {
+			Debug.Log($"OnConnectedToMaster() was called by PUN ping: {PhotonNetwork.GetPing()}ms");
+			PhotonNetwork.JoinLobby();
+		}
 
-        public override void OnJoinedRoom()
-        {
-            MessageBus.JoinedRoomEvent?.Invoke(PhotonNetwork.CurrentRoom.Name);
+		public override void OnDisconnected(DisconnectCause cause) {
+			Debug.LogWarningFormat("OnDisconnected() was called by PUN with reason {0}", cause);
+		}
 
-            var players = PhotonNetwork.PlayerList;
+		public override void OnJoinedLobby() {
+			Debug.Log("OnJoinedLobby() was called by PUN");
+			MessageBus.JoinedLobbyEvent?.Invoke();
+		}
 
-            for (int i = 0; i < players.Length; i++)
-            {
-                MessageBus.PlayerEnteredRoomEvent?.Invoke(players[i]);
-            }
-        }
+		public override void OnLeftLobby() {
+			Debug.Log("OnLeftLobby() was called by PUN");
+		}
 
-        public override void OnCreateRoomFailed(short returnCode, string message)
-        {
-            MessageBus.CreateRoomFailedEvent?.Invoke($"Room Creation Failed: {message}");
-        }
+		public void CreateRoom(string roomName) {
+			if (string.IsNullOrEmpty(roomName)) {
+				return;
+			}
 
-        public void LeaveRoom()
-        {
-            PhotonNetwork.LeaveRoom();
-        }
+			PhotonNetwork.CreateRoom(roomName, new RoomOptions {MaxPlayers = _maxPlayersPerRoom});
+		}
 
-        public override void OnLeftRoom()
-        {
-            MessageBus.MeLeftRoomEvent?.Invoke();
-        }
+		public override void OnJoinedRoom() {
+			MessageBus.JoinedRoomEvent?.Invoke(PhotonNetwork.CurrentRoom.Name);
 
-        public override void OnPlayerLeftRoom(Player otherPlayer)
-        {
-            Debug.Log("left blya");
-            MessageBus.OtherLeftRoomEvent?.Invoke(otherPlayer);
-        }
+			var players = PhotonNetwork.PlayerList;
 
-        public override void OnRoomListUpdate(List<RoomInfo> roomList)
-        {
-            MessageBus.RoomListUpdateEvent?.Invoke(roomList); //_roomListUpdateEvent?.Invoke(roomList);
-        }
+			for (int i = 0; i < players.Length; i++) {
+				MessageBus.PlayerEnteredRoomEvent?.Invoke(players[i]);
+			}
+		}
 
-        public void JoinRoom(RoomInfo info)
-        {
-            PhotonNetwork.JoinRoom(info.Name);
-        }
+		public override void OnCreateRoomFailed(short returnCode, string message) {
+			MessageBus.CreateRoomFailedEvent?.Invoke($"Room Creation Failed: {message}");
+		}
 
-        public override void OnPlayerEnteredRoom(Player newPlayer)
-        {
-            MessageBus.PlayerEnteredRoomEvent?.Invoke(newPlayer);
-        }
-    }
+		public void LeaveRoom() {
+			PhotonNetwork.LeaveRoom();
+		}
+
+		public override void OnLeftRoom() {
+			MessageBus.MeLeftRoomEvent?.Invoke();
+		}
+
+		public override void OnPlayerLeftRoom(Player otherPlayer) {
+			Debug.Log("left blya");
+			MessageBus.OtherLeftRoomEvent?.Invoke(otherPlayer);
+		}
+
+		public override void OnRoomListUpdate(List<RoomInfo> roomList) {
+			MessageBus.RoomListUpdateEvent?.Invoke(roomList); //_roomListUpdateEvent?.Invoke(roomList);
+		}
+
+		void JoinRoom(RoomInfo info) {
+			PhotonNetwork.JoinRoom(info.Name);
+		}
+
+		public override void OnPlayerEnteredRoom(Player newPlayer) {
+			MessageBus.PlayerEnteredRoomEvent?.Invoke(newPlayer);
+		}
+	}
 }

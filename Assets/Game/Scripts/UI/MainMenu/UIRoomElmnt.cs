@@ -7,26 +7,23 @@ using UnityEngine.UI;
 
 namespace Game.UI.MainMenu
 {
-    public class RoomItem : MonoBehaviour
+    public class UIRoomElmnt : MonoBehaviour
     {
         [SerializeField] private TMP_Text _roomNameText;
         [SerializeField] private Button _roomButton;
 
         private RoomInfo _info;
 
-        public Action<RoomInfo, RoomItem> RoomButtonAction;
+        public Action<RoomInfo, UIRoomElmnt> RoomButtonAction;
 
         public void Setup(RoomInfo info)
         {
             _info = info;
             _roomNameText.text = info.Name;
-            _roomButton.onClick.AddListener(delegate
-            {
-                RoomButton(info);
-            });
+            _roomButton.onClick.AddListener(() => RoomButton(info));
         }
 
-        public void RoomButton(RoomInfo info)
+        private void RoomButton(RoomInfo info)
         {
             RoomButtonAction.Invoke(info, this);
         }

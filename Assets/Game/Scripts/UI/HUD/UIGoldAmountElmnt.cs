@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Game.UI.HUD
 {
-    public class GoldAmountItem : MonoBehaviour
+    public class UIGoldAmountElmnt : MonoBehaviour
     {
         [SerializeField] private TMP_Text _playerNameText;
         [SerializeField] private TMP_Text _goldAmountText;
