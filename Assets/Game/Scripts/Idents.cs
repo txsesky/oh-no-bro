@@ -13,5 +13,15 @@ namespace Game {
 			public const string SinglePlayer = "single-player";
 			public const string Client = "client";
 		}
+		
+		public static class Paths {
+			public const string AbilityDatabaseJsonPath = "config/data/ability_database.json";
+			public const string ItemDatabaseJsonPath = "config/data/item_database.json";
+		}
+		
+		public static class Urls {
+			public const string AbilityDatabaseJsonUrl = "https://raw.githubusercontent.com/txsesky/gold-rush-database/master/ability_database.json";
+			public const string ItemDatabaseJsonUrl = "https://raw.githubusercontent.com/txsesky/gold-rush-database/master/item_database.json";
+		}
 	}
 }

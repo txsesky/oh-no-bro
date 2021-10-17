@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "abilities": [
+    {
+      "Name": "ability_health_boost",
+      "ID": "5000",
+
+      "AbilityBehavior": "PASSIVE",
+      "AbilityScriptFile": "ability_health_boost",
+      "AbilityUpgradeGoldCost": "50 75 125 150 225 250 425 775 1050 1900",
+      "AbilityUpgradeCooldown": "1",
+      "AbilityMaxLevel": "10",
+
+      "AbilitySpecial": [
+        {
+          "Name": "health_bonus",
+          "VarType": "FIELD_INTEGER",
+          "Value": "100 150 250 300 450 500 850 1550 2100 3800"
+        }
+      ]
+    }
+  ]
+}

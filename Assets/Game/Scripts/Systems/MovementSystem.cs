@@ -27,7 +27,7 @@ namespace Game.Systems {
 
 				charContrData.Value.Move(
 					new Vector3(movementDirectionData.Direction.x, 0, movementDirectionData.Direction.y) *
-					movementSpeedData.Modified * _sharedData.Time.DeltaTime);
+					movementSpeedData.ValueMeterPerSec * _sharedData.Time.DeltaTime);
 			}
 		}
 	}

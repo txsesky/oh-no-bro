@@ -1,8 +1,11 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Game.Events;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
+using UnityEngine.Networking;
 using Random = UnityEngine.Random;
 
 namespace Game {
@@ -13,6 +16,17 @@ namespace Game {
 		byte _maxPlayersPerRoom = 8;
 
 		void Awake() {
+			StartCoroutine(Init());
+		}
+
+		IEnumerator Init() {
+			yield return DownloadFile(
+				Idents.Urls.AbilityDatabaseJsonUrl,
+				Path.Combine(Application.streamingAssetsPath, Idents.Paths.AbilityDatabaseJsonPath));
+			yield return DownloadFile(
+				Idents.Urls.ItemDatabaseJsonUrl,
+				Path.Combine(Application.streamingAssetsPath, Idents.Paths.ItemDatabaseJsonPath));
+			
 			_gameVersion = Application.version;
 
 			PhotonNetwork.AutomaticallySyncScene = true;
@@ -23,6 +37,17 @@ namespace Game {
 			MessageBus.CreateRoomEvent += CreateRoom;
 			MessageBus.LeaveRoomEvent += LeaveRoom;
 			MessageBus.JoinRoomEvent += JoinRoom;
+		}
+
+
+		IEnumerator DownloadFile(string urlPath, string filePath) {
+			var uwr = new UnityWebRequest(urlPath, UnityWebRequest.kHttpVerbGET);
+			uwr.downloadHandler = new DownloadHandlerFile(filePath);
+			yield return uwr.SendWebRequest();
+			if (uwr.result != UnityWebRequest.Result.Success)
+				Debug.LogError(uwr.error);
+			else
+				Debug.Log("File successfully downloaded and saved to " + filePath);
 		}
 
 		void OnDestroy() {

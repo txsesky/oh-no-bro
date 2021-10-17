@@ -5,7 +5,7 @@ namespace Game.Components {
         public UIShopPanel Value;
     }
 
-    public struct UIShopItemElmntRef {
-        public UIShopItemElmnt Value;
+    public struct UItemElmntRef {
+        public UIItemElmnt Value;
     }
 }

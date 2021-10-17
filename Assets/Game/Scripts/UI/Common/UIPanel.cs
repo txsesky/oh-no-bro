@@ -6,13 +6,13 @@ namespace Game.UI.Common
     {
         [SerializeField]protected Canvas _canvas;
 
-        public void Show()
+        public virtual void Show()
         {
             _canvas.enabled = true;
             gameObject.SetActive(true);
         }
 
-        public void Hide()
+        public virtual void Hide()
         {
             gameObject.SetActive(false);
             _canvas.enabled = false;

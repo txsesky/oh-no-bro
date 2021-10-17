@@ -24,20 +24,18 @@ namespace Game.Systems {
 		[EcsFilter(typeof(UIShopPanelRef))]
 		readonly EcsFilter _uiShopPanelEntities = default;
 
-		[EcsFilter(Idents.Worlds.UiEvents, typeof(EcsUguiClickEvent))]
+		[EcsFilter(typeof(EcsUguiClickEvent))]
 		readonly EcsFilter _clickEventEntities = default;
 		
-		[EcsPool(Idents.Worlds.UiEvents)]
-		readonly EcsPool<EcsUguiClickEvent> _clickEventPool = default;
-
 		readonly EcsPool<PlayerData> _playerDataPool = default;
 		readonly EcsPool<OnTriggerEnterEvent> _onEnterTriggerEventPool = default;
 		readonly EcsPool<OnTriggerExitEvent> _onExitTriggerEventPool = default;
 		readonly EcsPool<ShopData> _shopPool = default;
 		readonly EcsPool<TransformRefData> _transformPool = default;
 		readonly EcsPool<UIShopPanelRef> _uiShopPanelPool = default;
-		readonly EcsPool<UIShopItemElmntRef> _uiShopItemPool = default;
-		
+		readonly EcsPool<UItemElmntRef> _uiShopItemPool = default;
+		readonly EcsPool<EcsUguiClickEvent> _clickEventPool = default;
+
 		readonly Dictionary<Transform, int> _transforms = new Dictionary<Transform, int>();
 
 		public void Run(EcsSystems systems) {
@@ -56,6 +54,9 @@ namespace Game.Systems {
 				var a = _transforms.ContainsKey(playerTransform) ? _transforms[playerTransform] : -1;
 				var b = _transforms.ContainsKey(shopTransform) ? _transforms[shopTransform] : -1;
 
+				if (a.IsNull() || b.IsNull())
+					return;
+
 				foreach (var uiShopPanelEntity in _uiShopPanelEntities) {
 					Trigger(a, b, () => _uiShopPanelPool.Get(uiShopPanelEntity).Value.Show());
 				}
@@ -70,17 +71,26 @@ namespace Game.Systems {
 				var a = _transforms.ContainsKey(playerTransform) ? _transforms[playerTransform] : -1;
 				var b = _transforms.ContainsKey(shopTransform) ? _transforms[shopTransform] : -1;
 
+				if (a.IsNull() || b.IsNull())
+					return;
+
 				foreach (var uiShopPanelEntity in _uiShopPanelEntities) {
 					Trigger(a, b, () => _uiShopPanelPool.Get(uiShopPanelEntity).Value.Hide());
 				}
 			}
 
 			foreach (var clickEventEntity in _clickEventEntities) {
-				Debug.Log("+MovementSpeed");
+				Debug.Log("click event");
 
 				var clickEventData = _clickEventPool.Get(clickEventEntity);
 
-				var btnEntity = _transforms[clickEventData.Sender.transform.parent];
+				var parent = clickEventData.Sender.transform.parent;
+				var btnEntity = _transforms.ContainsKey(parent)
+					? _transforms[parent]
+					: -1;
+
+				if (btnEntity.IsNull())
+					return;
 
 				if (_uiShopItemPool.Has(btnEntity)) {
 					Debug.Log("+MovementSpeed");
@@ -91,9 +101,6 @@ namespace Game.Systems {
 		}
 
 		void Trigger(int a, int b, Action action) {
-			if (a.IsNull() || b.IsNull())
-				return;
-
 			if (_playerDataPool.Has(a) && _shopPool.Has(b)) {
 				ref var playerData = ref _playerDataPool.Get(a);
 				ref var shopData = ref _shopPool.Get(b);

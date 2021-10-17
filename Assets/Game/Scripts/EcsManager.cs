@@ -1,10 +1,11 @@
+using Game.Components;
 using Game.Services;
 using Game.Systems;
 using LeoEcsPhysics;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using Leopotam.EcsLite.ExtendedSystems;
 using Leopotam.EcsLite.Unity.Ugui;
-using LeopotamGroup.Globals;
 using UnityEngine;
 
 namespace Game {
@@ -15,37 +16,41 @@ namespace Game {
 		void Awake() {
 			var uiEmitter = FindObjectOfType<EcsUguiEmitter>();
 
+			var time = new TimeService();
+			var gameState = new GameStateService(Idents.GameModes.SinglePlayer);
+			var googleDocs = new GoogleDocsService();
+
 			var shared = new SharedData {
-				Time = new TimeService(),
-				GameState = new GameStateService(Idents.GameModes.SinglePlayer),
-				GoogleDocs = new GoogleDocsService()
+				Time = time,
+				GameState = gameState,
+				GoogleDocs = googleDocs
 			};
 
 			_update = new EcsSystems(new EcsWorld(), shared);
 			_update
-				.AddWorld(new EcsWorld(), Idents.Worlds.Events)
-				.AddWorld(new EcsWorld(), Idents.Worlds.UiEvents)
 				.Add(new TimeSystem())
 				.Add(new CameraSpawnSystem())
-				.Add(new SpawnSystem())
+				.Add(new CreateItemsSystem())
+				.Add(new SinglePlayerSpawnSystem())
+				.Add(new PlayersSpawnSystem())
+				.Add(new EnvironmentLoadSystem())
+				.Add(new UILoadSystem())
+				.Add(new UIShopSystem())
 				.Add(new ParentingSystem())
+				.Add(new BuyCooldownSystem())
+				.Add(new AddModifierSystem())
 				.Add(new InputGatheringSystem())
 				.Add(new TrackDirectionSystem())
-				.Add(new StatsSystem())
-				.Add(new MovementSystem());
-			if (shared.GameState.GameMode == Idents.GameModes.Client)
-				_update
-					.Add(new LagCompensationSystem());
-			_update
+				.Add(new MovementSystem())
+				.Add(new LagCompensationSystem())
 				.Add(new ShopSystem())
 				.Add(new DisposeSystem())
-				.InjectUgui(uiEmitter, Idents.Worlds.UiEvents)
+				.InjectUgui(uiEmitter)
 				.Inject()
 #if UNITY_EDITOR
 				.Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem())
-				.Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem(Idents.Worlds.Events))
-				.Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem(Idents.Worlds.UiEvents))
 #endif
+				.DelHere<BuyItemEvent>()
 				.DelHerePhysics()
 				.Init();
 
@@ -72,8 +77,6 @@ namespace Game {
 			_update.Destroy();
 			_fixedUpdate.Destroy();
 			_update.GetWorld().Destroy();
-			_update.GetWorld(Idents.Worlds.Events).Destroy();
-			_update.GetWorld(Idents.Worlds.UiEvents).Destroy();
 			_update = null;
 			_fixedUpdate = null;
 		}

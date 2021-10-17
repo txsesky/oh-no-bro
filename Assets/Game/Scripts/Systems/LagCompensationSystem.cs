@@ -1,4 +1,3 @@
-using System;
 using Game.Components;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
